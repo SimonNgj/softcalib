@@ -20,9 +20,6 @@ from Utils.tcn import TemporalConvNet
 from sklearn.base import BaseEstimator, RegressorMixin
 from torch.utils.data import Dataset as torchDataset
 from torch.utils.data import DataLoader as torchDataLoader
-#from Utils.keras_utils_actuator import SELayer
-#from torchsummary import summary
-#from tensorboardX import SummaryWriter
 #######################################################
 
 CUDA_ID = 0
@@ -291,106 +288,61 @@ class actuatorNET(nn.Module, BaseEstimator, RegressorMixin):
         self.optimizer = optim.Adam(self.parameters(), lr = self.lr)
 
     def forward(self, x):
-        if model_ID == 0: # LSTM1
-            #print("x: ", x.shape)           
+        if model_ID == 0: # LSTM1       
             x1 = x.transpose(1, 0)
-            #print("x1: ", x1.shape)
             x2 = x1[:-1,:,:]
-            #print("x2: ", x2.shape)
             r, _ = self.SEN_LSTM(x2)
-            #print("r1: ", r.shape)
-            r = r[-1, :, :]
-            #print("r2: ", r.shape)     
+            r = r[-1, :, :] 
             r = torch.cat([r, x[:, -1, :]], 1)
-            #print("r3: ", r.shape)
             f0 = self.FORCE(r)
-            #print("f0: ", f0.shape)
             f3 = self.FORCE3(f0)
-            #print("f3_2: ", f3.shape)
             return f3 
         
-        elif model_ID == 1: # GRU1
-            #print("x: ", x.shape)           
+        elif model_ID == 1: # GRU1        
             x1 = x.transpose(1, 0)
-            #print("x1: ", x1.shape)
             x2 = x1[:-1,:,:]
-            #print("x2: ", x2.shape)
             r, _ = self.SEN_GRU(x2)
-            #print("r1: ", r.shape)
             r = r[-1, :, :]
-            #print("r2: ", r.shape)
             r = torch.cat([r, x[:, -1, :]], 1)
-            #print("r3: ", r.shape)
             f0 = self.FORCE(r)
-            #print("f0: ", f0.shape)
             f3 = self.FORCE3(f0)
-            #print("f3_2: ", f3.shape)
             return f3 
         
         elif model_ID == 2: # TCN1
-            #print("x: ", x.shape)
-            #print("xT: ", x.transpose(1,2).shape)
             r = self.tcn(x.transpose(1,2))
-            #print("r1: ", r.shape)
             r = r[:, :, -1]
-            #print("r2: ", r.shape)
             r = torch.cat([r, x[:, -1, :]], 1)
-            #print("r3: ", r.shape)
             l = self.FORCE_TCN(r)
             f3 = self.FORCE3(l)
-            #print("f3_2: ", f3.shape)
             return f3
         
         elif model_ID == 3: # FCN1
-            #print("x: ", x.shape)
             x1 = x.transpose(1,2)
-            #print("x1: ", x1.shape)
             x2 = x1[:,:,:-1]
-            #print("x2: ", x1.shape)
             r = self.convo(x2)
-            #print("r1: ", r.shape)
             r = self.se(r)
             r = r.mean(2)
-            #print("r2: ", r.shape)
             r = torch.cat([r, x[:, -1, :]], 1)
-            #print("r3: ", r.shape)
             l = self.FORCE_TCN(r)
-            #print("l: ", l.shape)
             f3 = self.FORCE3(l)
-            #print("f3_2: ", f3.shape)
             return f3
         
         if model_ID == 4: # biLSTM1
-            #print("x: ", x.shape)
             x1 = x.transpose(1,2)
-            #print("x1: ", x1.shape)
             x2 = x1[:,:,:-1]
-            #print("x2: ", x1.shape)
             r, _ = self.SEN_LSTM_bi(x2)
-            #print("r1: ", r.shape)
-            r = r[-1, :, :]
-            #print("r2: ", r.shape)     
+            r = r[-1, :, :]  
             r = torch.cat([r, x[:, -1, :]], 1)
-            #print("r3: ", r.shape)
             l = self.FORCE_bi(r)
-            #print("l: ", l.shape)
             f3 = self.FORCE3(l)
-            #print("f3_2: ", f3.shape)
             return f3 
         
         elif model_ID == 5: # biGRU1
-            #print("x: ", x.shape)
-            #print("xt: ", x.transpose(1,2).shape)
             r, _ = self.SEN_GRU_bi(x.transpose(1, 0))
-            #print("r1: ", r.shape)
             r = r[-1, :, :]
-            #print("r2: ", r.shape)
             r = torch.cat([r, x[:, -1, :]], 1)
-            #print("r3: ", r.shape)
             l = self.FORCE_bi(r)
-            #print("l: ", l.shape)
             f3 = self.FORCE3(l)
-            #print("f3_2: ", f3.shape)
             return f3 
         
 ###################################################################
@@ -443,13 +395,8 @@ class actuatorNET(nn.Module, BaseEstimator, RegressorMixin):
 if __name__ == '__main__':
     
     for i in range(0, 5):
-        #writer = SummaryWriter()  
-        #loader = DataLoader()
 
-        softsennet = actuatorNET(input_dim, OUTPUT_DIM, batch_size=BATCH_SIZE, n_epochs=N_EPOCHS, writer=None)
-    
-        #train_x, train_y = loader.getStandardTrainDataSet()
-        #summary(softsennet, (INPUT_LEN, INPUT_DIM))
+        softsennet = actuatorNET(input_dim, OUTPUT_DIM, batch_size=BATCH_SIZE, n_epochs=N_EPOCHS, writer=None)    
                
         start_train = time.time()
         softsennet.fit(seq_x, seq_y)
@@ -497,7 +444,7 @@ if __name__ == '__main__':
         f.close()        
         
         ########################## Draw example result #################################
-        abc = np.argsort(test_seq[:]) #0->41, 5410->5451
+        abc = np.argsort(test_seq[:])
         wpredF1 = predF1[abc[:]]
     
         aF = np.array(sensor_dataT)[seq_length:, (0)] # Force
