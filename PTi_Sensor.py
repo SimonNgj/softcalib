@@ -348,222 +348,116 @@ class sensorNET(nn.Module, BaseEstimator, RegressorMixin):
         self.optimizer = optim.Adam(self.parameters(), lr = self.lr)
 
     def forward(self, x):
-        if model_ID == 0: # LSTM1
-            #print("x: ", x.shape)           
+        if model_ID == 0: # LSTM1        
             x1 = x.transpose(1, 0)
-            #print("x1: ", x1.shape)
             x2 = x1[:-1,:,:]
-            #print("x2: ", x2.shape)
             r, _ = self.SEN_LSTM(x2)
-            #print("r1: ", r.shape)
-            r = r[-1, :, :]
-            #print("r2: ", r.shape)     
+            r = r[-1, :, :]   
             r = torch.cat([r, x[:, -1, :]], 1)
-            #print("r3: ", r.shape)
             l = self.LOC(r)
-            #print("l: ", l.shape)
             l0 = F.softmax(self.LOC_lo(l), dim=1)
-            #print("l0: ", l0.shape)
             f0 = self.FORCE1(l)
-            #print("f0: ", f0.shape)
             f1 = f0.view(-1,self.n_hidden_2, self.num_class)
-            #print("f1: ", f1.shape)
             l1 = l0.view(l0.shape[0],-1,self.num_class)
-            #print("l1: ", l1.shape)
             l2 = f1*l1
-            #print("l2: ", l2.shape)
             l3 = l2.view(l0.shape[0],-1)
-            #print("l3: ", l3.shape)
             f3 = self.FORCE2(l3)
-            #print("f3_1: ", f3.shape)
-            #Af3 = torch.cat([f3, x[:, -1, :]], 1)
-            #f3 = self.AFORCE3(Af3)
             f3 = self.FORCE3(f3)
-            #print("f3_2: ", f3.shape)
             return l0,f3 
         
-        elif model_ID == 1: # GRU1
-            #print("x: ", x.shape)           
+        elif model_ID == 1: # GRU1         
             x1 = x.transpose(1, 0)
-            #print("x1: ", x1.shape)
             x2 = x1[:-1,:,:]
-            #print("x2: ", x2.shape)
             r, _ = self.SEN_GRU(x2)
-            #print("r1: ", r.shape)
             r = r[-1, :, :]
-            #print("r2: ", r.shape)
             r = torch.cat([r, x[:, -1, :]], 1)
-            #print("r3: ", r.shape)
             l = self.LOC(r)
-            #print("l: ", l.shape)
             l0 = F.softmax(self.LOC_lo(l), dim =1)
-            #print("l0: ", l0.shape)
             f0 = self.FORCE1(l)
-            #print("f0: ", f0.shape)
             f1 = f0.view(-1,self.n_hidden_2, self.num_class)
-            #print("f1: ", f1.shape)
             l1 = l0.view(l0.shape[0],-1,self.num_class)
-            #print("l1: ", l1.shape)
             l2 = f1*l1
-            #print("l2: ", l2.shape)
             l3 = l2.view(l0.shape[0],-1)
-            #print("l3: ", l3.shape)
             f3 = self.FORCE2(l3)
-            #print("f3_1: ", f3.shape)
-            #Af3 = torch.cat([f3, x[:, -1, :]], 1)
-            #f3 = self.AFORCE3(Af3)
             f3 = self.FORCE3(f3)
-            #print("f3_2: ", f3.shape)
             return l0,f3 
         
         elif model_ID == 2: # TCN1
-            #print("x: ", x.shape)
             x1 = x.transpose(1,2)
-            #print("x1: ", x1.shape)
             x2 = x1[:,:,:-1]
-            #print("x2: ", x1.shape)
             r = self.tcn(x2)
-            #print("r1: ", r.shape)
             r = r[:, :, -1]
-            #print("r2: ", r.shape)
             r = torch.cat([r, x[:, -1, :]], 1)
-            #print("r3: ", r.shape)
             l = self.LOC_TCN(r)
-            #print("l: ", l.shape)
             l0 = F.softmax(self.LOC_lo(l), dim=1)
-            #print("l0: ", l0.shape)
             f0 = self.FORCE1(l)
-            #print("f0: ", f0.shape)
             f1 = f0.view(-1,self.n_hidden_2, self.num_class)
-            #print("f1: ", f1.shape)
             l1 = l0.view(l0.shape[0],-1,self.num_class)
-            #print("l1: ", l1.shape)
             l2 = f1*l1
-            #print("l2: ", l2.shape)
             l3 = l2.view(l0.shape[0],-1)
-            #print("l3: ", l3.shape)
             f3 = self.FORCE2(l3)
-            #print("f3_1: ", f3.shape)
             f3 = self.FORCE3(f3)
-            #Af3 = torch.cat([f3, x[:, -1, :]], 1)
-            #f3 = self.AFORCE3(Af3)
-            #print("f3_2: ", f3.shape)
             return l0,f3
         
         elif model_ID == 3: # FCN1
-            #print("x: ", x.shape)
             x1 = x.transpose(1,2)
-            #print("x1: ", x1.shape)
             x2 = x1[:,:,:-1]
-            #print("x: ", x.shape)
             r = self.convo(x2)
-            #print("r1: ", r.shape)
             r = self.se(r)
             r = r.mean(2)
-            #print("r2: ", r.shape)
             r = torch.cat([r, x[:, -1, :]], 1)
-            #print("r3: ", r.shape)
             l = self.LOC_TCN(r)
-            #print("l: ", l.shape)
             l0 = F.softmax(self.LOC_lo(l), dim=1)
-            #print("l0: ", l0.shape)
             f0 = self.FORCE1(l)
-            #print("f0: ", f0.shape)
             f1 = f0.view(-1,self.n_hidden_2, self.num_class)
-            #print("f1: ", f1.shape)
             l1 = l0.view(l0.shape[0],-1,self.num_class)
-            #print("l1: ", l1.shape)
             l2 = f1*l1
-            #print("l2: ", l2.shape)
             l3 = l2.view(l0.shape[0],-1)
-            #print("l3: ", l3.shape)
             f3 = self.FORCE2(l3)
-            #print("f3_1: ", f3.shape)
             f3 = self.FORCE3(f3)
-            #Af3 = torch.cat([f3, x[:, -1, :]], 1)
-            #f3 = self.AFORCE3(Af3)
-            #print("f3_2: ", f3.shape)
             return l0,f3
         
         elif model_ID == 3: # FCN1
-            #print("x: ", x.shape)
             x1 = x.transpose(1,2)
-            #print("x1: ", x1.shape)
             x2 = x1[:,:,:-1]
-            #print("x: ", x.shape)
             r = self.convo(x2)
-            #print("r1: ", r.shape)
             r = self.se(r)
             r = r.mean(2)
-            #print("r2: ", r.shape)
             r = torch.cat([r, x[:, -1, :]], 1)
-            #print("r3: ", r.shape)
             l = self.LOC_TCN(r)
-            #print("l: ", l.shape)
             l0 = F.softmax(self.LOC_lo(l), dim=1)
-            #print("l0: ", l0.shape)
             f0 = self.FORCE1(l)
-            #print("f0: ", f0.shape)
             f1 = f0.view(-1,self.n_hidden_2, self.num_class)
-            #print("f1: ", f1.shape)
             l1 = l0.view(l0.shape[0],-1,self.num_class)
-            #print("l1: ", l1.shape)
             l2 = f1*l1
-            #print("l2: ", l2.shape)
             l3 = l2.view(l0.shape[0],-1)
-            #print("l3: ", l3.shape)
             f3 = self.FORCE2(l3)
-            #print("f3_1: ", f3.shape)
             f3 = self.FORCE3(f3)
-            #Af3 = torch.cat([f3, x[:, -1, :]], 1)
-            #f3 = self.AFORCE3(Af3)
-            #print("f3_2: ", f3.shape)
             return l0,f3
         
         elif model_ID == 4: # FCN-LSTM1
-            #print("x: ", x.shape)
             x1_FCN = x.transpose(1,2)
-            #print("x1: ", x1.shape)
             x2_FCN = x1_FCN[:,:,:-1]
-            #print("x: ", x.shape)
             r_FCN = self.convo(x2_FCN)
-            #print("r1: ", r.shape)
             r_FCN = self.se(r_FCN)
             r_FCN = r_FCN.mean(2)
-            #print("r2: ", r.shape)
             r_FCN = torch.cat([r_FCN, x[:, -1, :]], 1)
-            #print("r3: ", r.shape)
             
             x1_LSTM = x.transpose(1, 0)
-            #print("x1: ", x1.shape)
             x2_LSTM = x1_LSTM[:-1,:,:]
-            #print("x2: ", x2.shape)
             r_LSTM, _ = self.SEN_LSTM(x2_LSTM)
-            #print("r1: ", r.shape)
             r_LSTM = r_LSTM[-1, :, :]
-            #print("r2: ", r.shape) 
             r = torch.cat([r_LSTM, r_FCN], 1)
             
             l = self.LOC_FCNLSTM(r)
-            #print("l: ", l.shape)
             l0 = F.softmax(self.LOC_lo(l), dim=1)
-            #print("l0: ", l0.shape)
             f0 = self.FORCE1(l)
-            #print("f0: ", f0.shape)
             f1 = f0.view(-1,self.n_hidden_2, self.num_class)
-            #print("f1: ", f1.shape)
             l1 = l0.view(l0.shape[0],-1,self.num_class)
-            #print("l1: ", l1.shape)
             l2 = f1*l1
-            #print("l2: ", l2.shape)
             l3 = l2.view(l0.shape[0],-1)
-            #print("l3: ", l3.shape)
             f3 = self.FORCE2(l3)
-            #print("f3_1: ", f3.shape)
             f3 = self.FORCE3(f3)
-            #Af3 = torch.cat([f3, x[:, -1, :]], 1)
-            #f3 = self.AFORCE3(Af3)
-            #print("f3_2: ", f3.shape)
             return l0,f3
 
     def fit(self, X: np.ndarray, yL: np.ndarray, yF: np.ndarray, X_valid=None, yL_valid=None, yF_valid=None):
@@ -686,10 +580,10 @@ if __name__ == '__main__':
         f.close()       
         
         ########################## Draw example result #################################
-        abc = np.argsort(test_seq[:]) #0->41, 5410->5451
+        abc = np.argsort(test_seq[:])
         wpredF1 = predF1[abc[:]]
 
-        a = 1025 - seq_length # 2769, 3672, 4880, 4875, 4180, 3310
+        a = 1025 - seq_length 
         b = a + 15
     
         aF = np.array(sensor_dataT)[:, (3)] # Force
