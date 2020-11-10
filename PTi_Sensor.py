@@ -21,10 +21,6 @@ from Utils.tcn import TemporalConvNet
 from sklearn.base import BaseEstimator, RegressorMixin
 import torch.nn.functional as F
 from torch.utils.data import Dataset as torchDataset
-#from data.DataLoaderSS import DiabetesDataset
-#from Utils.keras_utils_sensor import loc2array, preprocessing
-#from torchsummary import summary
-#from tensorboardX import SummaryWriter
 #######################################################
 
 CUDA_ID = 0
@@ -511,15 +507,9 @@ class sensorNET(nn.Module, BaseEstimator, RegressorMixin):
 
 if __name__ == '__main__':
     
-    for i in range(10, 11):
-        #writer = SummaryWriter()    
-        #loader = DataLoader()
-
+    for i in range(0, 5):
         softsennet = sensorNET(INPUT_DIM, OUTPUT_DIM, batch_size=BATCH_SIZE, n_epochs=N_EPOCHS, writer=None)
     
-        #train_x, train_y = loader.getStandardTrainDataSet()
-        #summary(softsennet, (INPUT_LEN, INPUT_DIM))        
-        
         start_train = time.time()
         softsennet.fit(seq_x, seq_l, seq_y)
         end_train = time.time()
@@ -549,8 +539,6 @@ if __name__ == '__main__':
         print('RMSE (V) = ', RMSE)
         print('RMSE (kPa) = ', RMSE_kPa)      
         print('NRMSE (%) = ', NRMSE) 
-
-        #writer.close()
      
         location_test = np.argmax(seq_lT, axis=1)
         predL1 = predL.cpu().numpy()
